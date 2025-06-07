@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -21,13 +21,13 @@ function getTodayDate() {
 }
 
 export default function InvoiceHistory() {
-  const [invoices, setInvoices] = useState<any[]>([])
-  const [monthlyTotals, setMonthlyTotals] = useState<any[]>([])
+  const [invoices, setInvoices] = useState<unknown[]>([])
+  const [monthlyTotals, setMonthlyTotals] = useState<unknown[]>([])
   const [totalAmount, setTotalAmount] = useState<number>(0)
   const [filterPhone, setFilterPhone] = useState('')
   const [filterTag, setFilterTag] = useState<string | undefined>()
   const [maxDate, setMaxDate] = useState(getTodayDate())
-  const [tags, setTags] = useState<any[]>([])
+  const [tags, setTags] = useState<unknown[]>([])
   const [loadingDelete, setLoadingDelete] = useState<string | null>(null)
   const [page, setPage] = useState(1)
 

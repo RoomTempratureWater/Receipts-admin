@@ -1,5 +1,5 @@
 import { getInvoiceHTMLTemplate } from '@/lib/template'
-export function printInvoice(invoice: any) {
+export function printInvoice(invoice: unknown) {
   const html = getInvoiceHTMLTemplate(invoice)
 
   const printWindow = window.open('', '_blank', 'width=800,height=600')

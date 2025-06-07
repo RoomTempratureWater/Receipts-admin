@@ -7,11 +7,16 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
 export default function AddTags() {
-  const [tags, setTags] = useState<any[]>([])
+  interface Tag {
+    tag_id: string
+    tag_name: string
+    created_at: string
+  }
+  const [tags, setTags] = useState<Tag[]>([])
   const [newTag, setNewTag] = useState('')
   const [editingTagId, setEditingTagId] = useState<string | null>(null)
   const [editingTagName, setEditingTagName] = useState('')
-
+  
   const fetchTags = async () => {
     const { data } = await supabase.from('tags').select('*').order('created_at', { ascending: false })
     setTags(data || [])
