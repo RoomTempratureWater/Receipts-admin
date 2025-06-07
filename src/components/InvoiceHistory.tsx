@@ -15,19 +15,41 @@ import {
 } from '@/components/ui/select'
 import { printInvoice } from '@/lib/print_invoice'
 
+// Define types based on your database schema
+type Tag = {
+  tag_id: string;
+  tag_name: string;
+};
+
+type Invoice = {
+  id: string;
+  user_id: string;
+  phone: string;
+  name: string;
+  title: string;
+  amount: number;
+  tag: string;
+  created_at: string;
+  tags?: Tag;
+};
+
+type MonthlyTotal = {
+  month: string;
+  total: number;
+};
 
 function getTodayDate() {
   return new Date().toISOString().split('T')[0]
 }
 
 export default function InvoiceHistory() {
-  const [invoices, setInvoices] = useState<unknown[]>([])
-  const [monthlyTotals, setMonthlyTotals] = useState<unknown[]>([])
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotal[]>([])
   const [totalAmount, setTotalAmount] = useState<number>(0)
   const [filterPhone, setFilterPhone] = useState('')
   const [filterTag, setFilterTag] = useState<string | undefined>()
   const [maxDate, setMaxDate] = useState(getTodayDate())
-  const [tags, setTags] = useState<unknown[]>([])
+  const [tags, setTags] = useState<Tag[]>([])
   const [loadingDelete, setLoadingDelete] = useState<string | null>(null)
   const [page, setPage] = useState(1)
 
@@ -165,7 +187,6 @@ export default function InvoiceHistory() {
           <CardContent className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={monthlyTotals}>
-               
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
@@ -238,4 +259,3 @@ export default function InvoiceHistory() {
     </div>
   )
 }
-
