@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // No match found
     return NextResponse.json({ error: null, message: false });
-  } catch (err) {
+  } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Unknown error', message: false }, { status: 500 });
   }
 }
