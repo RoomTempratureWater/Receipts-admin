@@ -37,14 +37,12 @@ export default function SignupPage() {
   const handleSignup = async () => {
     var isValid = false
     try{
-      isValid = await verifyPassword(key);
+      isValid = await verifyPassword(key)
       if (isValid == true) {
-        setverify(true);
+        setverify(true)
         //console.log("key is verified!");
         }
-        
-      }
-    }catch (err) {
+    } catch (err) {
       setkey_error(err)
     }
     
@@ -74,7 +72,7 @@ export default function SignupPage() {
         <Label>Key</Label>
         <Input type="key" value={key} onChange={e => setKey(e.target.value)} />
         {key_error && <p className="text-red-500 text-sm">{key_error}</p>}
-        {setverify && <p className="text-green-500 text-sm">key is verified!</p>}
+        {setverify == true && <p className="text-green-500 text-sm">key is verified!</p>}
         <Button onClick={handleSignup} className="w-full">Create Account</Button>
         <Button
           variant="outline"
