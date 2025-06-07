@@ -35,12 +35,12 @@ export default function SignupPage() {
     return data.message; // true if verified, false otherwise
   }
   const handleSignup = async () => {
-    var isValid = false
+    let isValid = false
     try{
       isValid = await verifyPassword(key)
       if (isValid == true) {
         setverify(true)
-        //console.log("key is verified!");
+        console.log(verify);
         }
     } catch (err) {
       setkey_error(err)
