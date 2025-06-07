@@ -16,7 +16,7 @@ export default function SignupPage() {
   const [key, setKey] = useState('')
   const [error, setError] = useState('')
   // const [hashedKeys, setHashedKey] = useState('')
-  const [verify, setverify] = useState('')
+  const [verify, setverify] = useState<boolean>(false)
   const router = useRouter()
   const [key_error, setkey_error] = useState('')
 
