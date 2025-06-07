@@ -72,7 +72,7 @@ export default function SignupPage() {
         <Label>Key</Label>
         <Input type="key" value={key} onChange={e => setKey(e.target.value)} />
         {key_error && <p className="text-red-500 text-sm">{key_error}</p>}
-        {setverify == true && <p className="text-green-500 text-sm">key is verified!</p>}
+        {verify == true && <p className="text-green-500 text-sm">key is verified!</p>}
         <Button onClick={handleSignup} className="w-full">Create Account</Button>
         <Button
           variant="outline"
