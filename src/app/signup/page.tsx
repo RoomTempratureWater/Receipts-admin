@@ -43,7 +43,7 @@ export default function SignupPage() {
         console.log(verify);
         }
     } catch (err) {
-      setkey_error(err)
+      setkey_error(err instanceof Error ? err.message : String(err));
     }
     
     if (isValid == true) {
