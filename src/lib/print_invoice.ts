@@ -1,31 +1,32 @@
-export function printInvoice(invoice: unknown) {
+import { getInvoiceHTMLTemplate } from '@/lib/template'
+
+export function printInvoice(invoice: unknown): void {
   const html = getInvoiceHTMLTemplate(invoice)
 
   // Create a hidden iframe
   const iframe = document.createElement('iframe')
-  iframe.style.position = 'fixed'
-  iframe.style.right = '0'
-  iframe.style.bottom = '0'
-  iframe.style.width = '0'
-  iframe.style.height = '0'
-  iframe.style.border = '0'
-  iframe.id = 'print-iframe'
+  iframe.setAttribute('style', 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;')
+  iframe.setAttribute('id', 'print-iframe')
 
   document.body.appendChild(iframe)
 
   const doc = iframe.contentWindow?.document
-  if (doc) {
-    doc.open()
-    doc.write(html)
-    doc.close()
+  if (!doc) return
 
-    iframe.onload = () => {
+  doc.open()
+  doc.write(html)
+  doc.close()
+
+  iframe.onload = () => {
+    try {
       iframe.contentWindow?.focus()
       iframe.contentWindow?.print()
-
-      // Clean up after printing
+    } catch (err) {
+      console.error('Printing failed:', err)
+    } finally {
+      // Cleanup after a short delay to allow print dialog
       setTimeout(() => {
-        document.body.removeChild(iframe)
+        iframe.remove()
       }, 1000)
     }
   }
