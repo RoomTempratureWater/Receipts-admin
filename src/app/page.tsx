@@ -7,11 +7,15 @@ import { Button } from '@/components/ui/button'
 import AddInvoiceForm from '@/components/AddInvoiceForm'
 import InvoiceHistory from '@/components/InvoiceHistory'
 import AddTags from '@/components/AddTags'
+import ChurchFundHistory from '@/components/ChurchFundHistory'
 import { X, Menu, Sun, Moon } from 'lucide-react'
 import { useTheme } from 'next-themes'
-
+import AddExpenditureForm from '@/components/AddExpenditureForm'
+import ExpenditureHistory from '@/components/ExpenditureHistory'
+import BalanceSheet from '@/components/BalanceSheet'
 export default function Dashboard() {
-  const [view, setView] = useState<'add' | 'history' | 'tags'>('add')
+
+  const [view, setView] = useState<'add' | 'history' | 'tags' | 'funds' | 'expenditure'| 'expenses' | 'balance'>('add')
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
@@ -21,7 +25,7 @@ export default function Dashboard() {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser()
       if (data?.user) {
-        setUserEmail(data.user.email ?? null);
+        setUserEmail(data.user.email ?? null)
       } else {
         router.push('/login')
       }
@@ -80,6 +84,46 @@ export default function Dashboard() {
       >
         🏷️ Tags
       </Button>
+      <Button
+        variant={view === 'funds' ? 'default' : 'outline'}
+        className="bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
+        onClick={() => {
+          setView('funds')
+          setSidebarOpen(false)
+        }}
+      >
+        🙏 Fund History
+      </Button>
+      <Button
+        variant={view === 'expenditure' ? 'default' : 'outline'}
+        className="bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
+        onClick={() => {
+          setView('expenditure')
+          setSidebarOpen(false)
+        }}
+      >
+        💸 Add Expenditure
+      </Button>
+            <Button
+        variant={view === 'expenses' ? 'default' : 'outline'}
+        className="bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
+        onClick={() => {
+          setView('expenses')
+          setSidebarOpen(false)
+        }}
+      >
+        💸 Expenditure History
+      </Button>
+                  <Button
+        variant={view === 'balance' ? 'default' : 'outline'}
+        className="bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
+        onClick={() => {
+          setView('balance')
+          setSidebarOpen(false)
+        }}
+      >
+        Balance Sheet 
+      </Button>
 
       <div className="mt-auto text-sm pt-4 border-t" style={{ borderColor: 'var(--color-sidebar-border)' }}>
         <p className="mb-2">Signed in as:</p>
@@ -127,8 +171,11 @@ export default function Dashboard() {
         {view === 'add' && <AddInvoiceForm />}
         {view === 'history' && <InvoiceHistory />}
         {view === 'tags' && <AddTags />}
+        {view === 'funds' && <ChurchFundHistory />}
+        {view === 'expenditure' && <AddExpenditureForm />}
+        {view === 'expenses' && <ExpenditureHistory />}
+        {view === 'balance' && <BalanceSheet />}
       </main>
     </div>
   )
 }
-
