@@ -81,7 +81,7 @@ export default function InvoiceAttributionHistory() {
     <div className="space-y-6">
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-4 justify-between">
-        <h2 className="text-xl font-semibold">Invoice Attribution History</h2>
+        <h2 className="text-xl font-semibold">Church Fund History</h2>
         <Input
           placeholder="Enter phone number"
           value={filterPhone}
@@ -108,14 +108,14 @@ export default function InvoiceAttributionHistory() {
           <div className="flex gap-6">
             <Card className="flex-1 max-w-xs">
               <CardHeader>
-                <CardTitle>Total Invoiced</CardTitle>
+                <CardTitle>Total Funds</CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold">₹{totalAmount}</CardContent>
             </Card>
 
             <Card className="flex-1">
               <CardHeader>
-                <CardTitle>Monthly Invoices</CardTitle>
+                <CardTitle>Monthly Church Fund Graph</CardTitle>
               </CardHeader>
               <CardContent className="h-48">
                 <ResponsiveContainer width="100%" height="100%">

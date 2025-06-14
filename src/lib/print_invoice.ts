@@ -1,7 +1,7 @@
-import { getInvoiceHTMLTemplate } from '@/lib/template'
+import { ChurchReceipt } from '@/lib/template'
 
 export function printInvoice(invoice: unknown): void {
-  const html = getInvoiceHTMLTemplate(invoice)
+  const html = ChurchReceipt(invoice)
 
   // Create a hidden iframe
   const iframe = document.createElement('iframe')

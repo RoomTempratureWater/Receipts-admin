@@ -48,7 +48,7 @@ export default function Dashboard() {
       }}
     >
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold">Invoice App</h2>
+        <h2 className="text-xl font-bold">OMMC | Accounting</h2>
         <button onClick={() => setSidebarOpen(false)} className="md:hidden text-inherit">
           <X />
         </button>
@@ -62,7 +62,7 @@ export default function Dashboard() {
           setSidebarOpen(false)
         }}
       >
-        ➕ Add
+        ➕ Add Invoice
       </Button>
       <Button
         variant={view === 'history' ? 'default' : 'outline'}
@@ -72,7 +72,7 @@ export default function Dashboard() {
           setSidebarOpen(false)
         }}
       >
-        📜 History
+        📜 Invoice History
       </Button>
       <Button
         variant={view === 'tags' ? 'default' : 'outline'}
@@ -92,7 +92,7 @@ export default function Dashboard() {
           setSidebarOpen(false)
         }}
       >
-        🙏 Fund History
+        🧾 Church Fund History
       </Button>
       <Button
         variant={view === 'expenditure' ? 'default' : 'outline'}
@@ -112,7 +112,7 @@ export default function Dashboard() {
           setSidebarOpen(false)
         }}
       >
-        💸 Expenditure History
+        📉 Expenditure History
       </Button>
                   <Button
         variant={view === 'balance' ? 'default' : 'outline'}
@@ -122,7 +122,7 @@ export default function Dashboard() {
           setSidebarOpen(false)
         }}
       >
-        Balance Sheet 
+        📊 Balance Sheet 
       </Button>
 
       <div className="mt-auto text-sm pt-4 border-t" style={{ borderColor: 'var(--color-sidebar-border)' }}>

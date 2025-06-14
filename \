@@ -129,6 +129,7 @@ export default function AddInvoiceForm() {
       name,
       title,
       amount: Number(amount),
+      created_at: new Date().toISOString(), // current timestamp
       date, // assumes `date` is a valid ISO date string or Date object
       tag,
       address,
@@ -140,7 +141,7 @@ export default function AddInvoiceForm() {
     }
 
     const { data: inserted, error: insertError } = await supabase
-      .rpc('insert_invoice_with_short_id', invoiceData)
+      .rpc('create_invoice_with_short_id', invoiceData)
       .select()
       .single();
 
