@@ -168,13 +168,29 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        {view === 'add' && <AddInvoiceForm />}
-        {view === 'history' && <InvoiceHistory />}
-        {view === 'tags' && <AddTags />}
-        {view === 'funds' && <ChurchFundHistory />}
-        {view === 'expenditure' && <AddExpenditureForm />}
-        {view === 'expenses' && <ExpenditureHistory />}
-        {view === 'balance' && <BalanceSheet />}
+
+        <div className={view === 'add' ? '' : 'hidden'}>
+          <AddInvoiceForm />
+        </div>
+        <div className={view === 'history' ? '' : 'hidden'}>
+          <InvoiceHistory />
+        </div>
+        <div className={view === 'tags' ? '' : 'hidden'}>
+          <AddTags />
+        </div>
+        <div className={view === 'funds' ? '' : 'hidden'}>
+          <ChurchFundHistory />
+        </div>
+        <div className={view === 'expenditure' ? '' : 'hidden'}>
+          <AddExpenditureForm />
+        </div>
+        <div className={view === 'expenses' ? '' : 'hidden'}>
+          <ExpenditureHistory />
+        </div>
+        <div className={view === 'balance' ? '' : 'hidden'}>
+          <BalanceSheet />
+        </div>
+
       </main>
     </div>
   )

@@ -135,7 +135,7 @@ export default function InvoiceAttributionHistory() {
             <table className="min-w-full border-collapse table-auto">
               <thead className="sticky top-0 bg-white dark:bg-black">
                 <tr>
-                  <th className="border px-3 py-2 text-left">Invoice ID</th>
+                  <th className="border px-3 py-2 text-left">Invoice short ID</th>
                   <th className="border px-3 py-2 text-left">Phone</th>
                   <th className="border px-3 py-2 text-left">Name</th>
                   <th className="border px-3 py-2 text-left">Month</th>
@@ -150,7 +150,7 @@ export default function InvoiceAttributionHistory() {
                 ) : (
                   attributions.map(attr => (
                     <tr key={`${attr.invoice_id}-${attr.effective_month}`} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                      <td className="border px-3 py-2">{attr.invoice_id}</td>
+                      <td className="border px-3 py-2">{attr.short_id}</td>
                       <td className="border px-3 py-2">{attr.phone}</td>
                       <td className="border px-3 py-2">{attr.name}</td>
                       <td className="border px-3 py-2">{attr.effective_month}</td>

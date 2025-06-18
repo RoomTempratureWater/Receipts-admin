@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { printInvoice } from '@/lib/print_invoice'
+import { Checkbox } from '@/components/ui/checkbox'
 
 type Tag = {
   tag_id: string;
@@ -30,6 +31,7 @@ type Invoice = {
   tag: string;
   payment_reference?: string;
   created_at: string;
+  actual_amt_credit_dt: string | null;
   tags?: Tag;
 };
 
@@ -54,6 +56,7 @@ export default function InvoiceHistory() {
   const [tags, setTags] = useState<Tag[]>([])
   const [loadingDelete, setLoadingDelete] = useState<string | null>(null)
   const [page, setPage] = useState(1)
+  const [onlyPendingCredit, setOnlyPendingCredit] = useState(false)
 
   const pageSize = 50
 
@@ -84,6 +87,7 @@ export default function InvoiceHistory() {
     if (maxDate) query = query.lte('created_at', maxDate + 'T23:59:59')
     if (fromDate) query = query.gte('created_at', fromDate + 'T00:00:00')
     if (paymentRef?.trim()) query = query.ilike('payment_reference', `%${paymentRef.trim()}%`)
+    if (onlyPendingCredit) query = query.is('actual_amt_credit_dt', null)
 
     const { data, error } = await query
     if (!error && data) {
@@ -122,7 +126,7 @@ export default function InvoiceHistory() {
     fetchInvoices(filterPhone, filterTag, maxDate, 1, fromDate, paymentRef)
     fetchGraphData(filterPhone, filterTag, maxDate)
     fetchTotalAmount(filterPhone, filterTag, maxDate)
-  }, [filterPhone, filterTag, maxDate, fromDate, paymentRef])
+  }, [filterPhone, filterTag, maxDate, fromDate, paymentRef, onlyPendingCredit])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this invoice?')) return
@@ -194,9 +198,18 @@ export default function InvoiceHistory() {
             </SelectContent>
           </Select>
         </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="pending-credit"
+            checked={onlyPendingCredit}
+            onCheckedChange={() => setOnlyPendingCredit(!onlyPendingCredit)}
+          />
+          <label htmlFor="pending-credit" className="text-sm">Show pending bank credits only</label>
+        </div>
       </div>
 
-      {/* Chart + Summary */}
+      {/* Summary */}
       <div className="flex gap-6">
         <Card className="flex-1 max-w-xs">
           <CardHeader>
@@ -222,7 +235,7 @@ export default function InvoiceHistory() {
         </Card>
       </div>
 
-      {/* Invoice Table */}
+      {/* Table */}
       <div className="overflow-auto max-h-[600px] border rounded-md">
         <table className="min-w-full border-collapse table-auto">
           <thead className="sticky top-0">
@@ -232,14 +245,15 @@ export default function InvoiceHistory() {
               <th className="border px-3 py-2 text-left">Phone</th>
               <th className="border px-3 py-2 text-left">Tag</th>
               <th className="border px-3 py-2 text-right">Amount (₹)</th>
-              <th className="border px-3 py-2 text-left">Date</th>
+              <th className="border px-3 py-2 text-left">Created</th>
+              <th className="border px-3 py-2 text-left">Actual Credit</th>
               <th className="border px-3 py-2 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {invoices.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center p-4">No invoices found.</td>
+                <td colSpan={8} className="text-center p-4">No invoices found.</td>
               </tr>
             ) : (
               invoices.map(inv => (
@@ -250,6 +264,32 @@ export default function InvoiceHistory() {
                   <td className="border px-3 py-2">{inv.tags?.tag_name || <span className="italic text-gray-400">None</span>}</td>
                   <td className="border px-3 py-2 text-right">{inv.amount}</td>
                   <td className="border px-3 py-2">{new Date(inv.created_at).toLocaleDateString()}</td>
+
+                  <td className="border px-3 py-2">
+                    <input
+                      type="date"
+                      className="border px-2 py-1 rounded text-sm dark:bg-gray-800"
+                      value={inv.actual_amt_credit_dt?.slice(0, 10) || ''}
+                      onChange={async (e) => {
+                        const newDate = e.target.value
+                        const { error } = await supabase
+                          .from('invoices')
+                          .update({ actual_amt_credit_dt: newDate || null })
+                          .eq('id', inv.id)
+                  
+                        if (!error) {
+                          setInvoices((prev) =>
+                            prev.map((row) =>
+                              row.id === inv.id ? { ...row, actual_amt_credit_dt: newDate || null } : row
+                            )
+                          )
+                        } else {
+                          alert('Failed to update date')
+                        }
+                      }}
+                    />
+                  </td>
+
                   <td className="border px-3 py-2 text-center space-x-2">
                     <Button
                       variant="destructive"

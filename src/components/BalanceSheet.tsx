@@ -48,14 +48,14 @@ export default function BalanceSheet() {
       const invoiceQuery = supabase
         .from('invoices')
         .select('tag, payment_type, amount')
-        .gte('date', startDate)
-        .lte('date', endDate)
+        .gte('actual_amt_credit_dt', startDate)
+        .lte('actual_amt_credit_dt', endDate)
 
       const expenseQuery = supabase
         .from('expenditures')
         .select('tag, payment_type, amount')
-        .gte('date', startDate)
-        .lte('date', endDate)
+        .gte('actual_amt_credit_dt', startDate)
+        .lte('actual_amt_credit_dt', endDate)
 
       const [invoiceRes, expenseRes] = await Promise.all([invoiceQuery, expenseQuery])
 
