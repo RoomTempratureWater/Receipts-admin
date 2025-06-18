@@ -24,6 +24,7 @@ interface Expenditure {
   date: string
   image_url?: string
   signed_image_url?: string | null
+  actual_amt_credit_dt: string | null
 }
 
 export default function ExpenditureHistory() {
@@ -31,9 +32,11 @@ export default function ExpenditureHistory() {
   const [expenditures, setExpenditures] = useState<Expenditure[]>([])
   const [tags, setTags] = useState<Tag[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [allSelected, setAllSelected] = useState(true)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [allSelected, setAllSelected] = useState(true)
+  const [paymentRefFilter, setPaymentRefFilter] = useState('')
+  const [showPendingCheques, setShowPendingCheques] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -53,20 +56,21 @@ export default function ExpenditureHistory() {
   }, [])
 
   useEffect(() => {
-    const fetchExpenditures = async () => {
+    async function fetchExpenditures() {
       if (!userId) return
 
       let query = supabase
         .from('expenditures')
         .select('*')
-        .eq('user_id', userId)
 
-      if (startDate) query = query.gte('date', startDate)
-      if (endDate) query = query.lte('date', endDate)
-      if (selectedTags.length > 0) query = query.in('tag', selectedTags)
+
+      if (startDate) query = query.gte('actual_amt_credit_dt', startDate)
+      if (endDate) query = query.lte('actual_amt_credit_dt', endDate)
+      if (selectedTags.length) query = query.in('tag', selectedTags)
+      if (paymentRefFilter) query = query.ilike('payment_reference', `%${paymentRefFilter}%`)
+      if (showPendingCheques) query = query.is('actual_amt_credit_dt', null)
 
       const { data, error } = await query.order('date', { ascending: false })
-
       if (error) {
         console.error('Error fetching expenditures:', error.message)
         return
@@ -74,14 +78,13 @@ export default function ExpenditureHistory() {
 
       const signed = await Promise.all(
         data.map(async exp => {
-          if (!exp.image_url) return exp
-          const { data: signedUrlData } = await supabase.storage
+          if (!exp.image_url) return { ...exp, signed_image_url: null }
+          const { data: signedImage } = await supabase.storage
             .from('expenditures')
-            .createSignedUrl(exp.image_url, 60 * 60) // 1 hour
-
+            .createSignedUrl(exp.image_url, 60 * 60)
           return {
             ...exp,
-            signed_image_url: signedUrlData?.signedUrl ?? null,
+            signed_image_url: signedImage?.signedUrl ?? null,
           }
         })
       )
@@ -90,13 +93,12 @@ export default function ExpenditureHistory() {
     }
 
     fetchExpenditures()
-  }, [userId, startDate, endDate, selectedTags])
+  }, [userId, startDate, endDate, selectedTags, paymentRefFilter, showPendingCheques])
 
   const toggleTag = (tagId: string) => {
     const updated = selectedTags.includes(tagId)
       ? selectedTags.filter(t => t !== tagId)
       : [...selectedTags, tagId]
-
     setSelectedTags(updated)
     setAllSelected(updated.length === tags.length)
   }
@@ -109,6 +111,19 @@ export default function ExpenditureHistory() {
       setSelectedTags(tags.map(t => t.tag_id))
       setAllSelected(true)
     }
+  }
+
+  const updateCreditDate = async (id: string, newDate: string | null) => {
+    const { error } = await supabase
+      .from('expenditures')
+      .update({ actual_amt_credit_dt: newDate })
+      .eq('id', id)
+
+    if (error) return console.error(error.message)
+
+    setExpenditures(prev =>
+      prev.map(exp => exp.id === id ? { ...exp, actual_amt_credit_dt: newDate } : exp)
+    )
   }
 
   return (
@@ -125,10 +140,25 @@ export default function ExpenditureHistory() {
           <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
         </div>
         <div>
+          <Label>Payment Reference</Label>
+          <Input
+            placeholder="Filter by payment reference"
+            value={paymentRefFilter}
+            onChange={e => setPaymentRefFilter(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-1">
+          <Checkbox
+            checked={showPendingCheques}
+            onCheckedChange={checked => setShowPendingCheques(Boolean(checked))}
+          />
+          <span>Pending Cheques</span>
+        </div>
+        <div>
           <Label>Filter by Tags</Label>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">Select Tags ({selectedTags.length})</Button>
+              <Button variant="outline">Tags ({selectedTags.length})</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="p-2 max-h-64 overflow-auto space-y-2">
               <div className="flex items-center gap-2 px-2">
@@ -162,9 +192,28 @@ export default function ExpenditureHistory() {
                 </div>
                 <div className="text-sm text-gray-600">
                   {exp.payment_type.toUpperCase()}
-                  {exp.payment_reference && ` - ${exp.payment_reference}`}
+                  {exp.payment_reference && ` – ${exp.payment_reference}`}
                 </div>
                 <div className="text-sm text-gray-500">📅 {exp.date}</div>
+
+                <div className="flex items-center gap-3">
+                  <Label>Debited on:</Label>
+                    <Input
+                    type="date"
+                    value={exp.actual_amt_credit_dt?.split('T')[0] || ''}
+                    onChange={e => updateCreditDate(exp.id, e.target.value)}
+                    className="w-40"
+                  />
+                  {exp.payment_type=='cheque' && exp.actual_amt_credit_dt && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateCreditDate(exp.id, null)}
+                    >
+                      Mark as Pending
+                    </Button>
+                  )}
+                </div>
 
                 {exp.signed_image_url && (
                   <div className="mt-2">

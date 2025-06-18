@@ -17,6 +17,12 @@ function getTodayDate() {
   return new Date().toISOString().split('T')[0]
 }
 
+function getISTTimestamp() {
+  const now = new Date()
+  const offsetIST = 5.5 * 60 * 60 * 1000
+  return new Date(now.getTime() + offsetIST - now.getTimezoneOffset() * 60000).toISOString()
+}
+
 interface Tag {
   tag_id: string
   tag_name: string
@@ -98,12 +104,17 @@ export default function AddExpenditureForm() {
     }
 
     let imageUrl: string | null = null
+    let filePath: string | null = null
+
     try {
       imageUrl = await uploadImage(user.id)
+      if (imageUrl) filePath = imageUrl
     } catch (err: any) {
       setError(`Image upload failed: ${err.message}`)
       return
     }
+
+    const actual_amt_credit_dt = paymentType === 'cheque' ? null : getISTTimestamp()
 
     const expenditureData = {
       title,
@@ -112,8 +123,8 @@ export default function AddExpenditureForm() {
       payment_reference: paymentType !== 'cash' ? paymentRef : null,
       tag,
       date,
-      image_url: imageUrl,
-      user_id: user.id,
+      image_url: filePath,
+      actual_amt_credit_dt,
     }
 
     const { error: insertError } = await supabase

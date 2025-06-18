@@ -96,12 +96,17 @@ export default function AddInvoiceForm() {
     if (!tag) return 'Please select a tag.'
     if (isNaN(Number(amount))) return 'Amount must be a number.'
     if (paymentType !== 'cash' && !paymentReference) return 'Payment reference is required for non-cash payments.'
-    if (tags.find(t => t.tag_id === tag)?.tag_name === 'Church Fund' && useRange && (!fromDate || !toDate)) {
-      return 'From and To dates are required when using a date range.'
+
+    if (selectedTagName === 'Church Fund' && useRange) {
+      if (!fromDate || !toDate) {
+        return 'From and To dates are required when using a date range.'
+      }
     }
+
     return null
   }
 
+  
   const handleSubmit = async () => {
     setError('')
     setSuccess('')
@@ -110,26 +115,32 @@ export default function AddInvoiceForm() {
       setError(err)
       return
     }
-
+  
     const {
       data: { user },
       error: userError,
     } = await supabase.auth.getUser()
-
+  
     if (!user || userError) {
       setError('User not authenticated.')
       return
     }
+  
 
-    const effective_from = useRange ? fromDate : date
-    const effective_to = useRange ? toDate : date
+    const useValidRange = useRange && fromDate && toDate
+    
+    const effective_from = useValidRange ? fromDate : null
+    const effective_to = useValidRange ? toDate : null
 
+  
+    const actual_amt_credit_dt = paymentType === 'cheque' ? null : date
+  
     const invoiceData = {
       phone,
       name,
       title,
       amount: Number(amount),
-      date, // assumes `date` is a valid ISO date string or Date object
+      date, // user-selected date
       tag,
       address,
       effective_from,
@@ -137,13 +148,14 @@ export default function AddInvoiceForm() {
       user_id: user.id,
       payment_type: paymentType,
       payment_reference: paymentType !== 'cash' ? paymentReference : null,
+      actual_amt_credit_dt, // NEW FIELD
     }
-
+  
     const { data: inserted, error: insertError } = await supabase
       .rpc('insert_invoice_with_short_id', invoiceData)
       .select()
       .single();
-
+  
     if (insertError) {
       setError(insertError.message)
     } else {

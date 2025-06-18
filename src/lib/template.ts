@@ -86,10 +86,10 @@ export function ChurchReceipt(invoice: any) {
 </head>
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <body>    
-<div class="print-container grid" style="page-break-inside: avoid;">
-<div class="grid grid-rows-2 gap-1">
 
-<div class="mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md p-6">
+<div class="grid grid-rows-2 gap-1" style="page-break-inside: avoid;">
+
+<div class="w-screen max-w-none m-0 p-0 print:w-screen print:max-w-none print:m-0 print:p-0 dark:bg-gray-800 rounded-lg max-w-md p-6" style="break-inside: avoid;">
 
   <div class="items-center justify-center mb-6 flex">
     <img alt="Methodist Church Logo - Red cross symbol" src="${imageUrl}" class="w-10 h-10 mb-3">
@@ -166,7 +166,7 @@ export function ChurchReceipt(invoice: any) {
 <div clas="" style="font-size: 10px;">Member Copy</div>
   </div>
 </div>
-<div class="mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md p-6">
+<div class="w-screen max-w-none m-0 p-0 print:w-screen print:max-w-none print:m-0 print:p-0 bg-white dark:bg-gray-800 rounded-lg max-w-md p-6"  style="break-inside: avoid;">
   <div class="items-center justify-center mb-6 flex">
     <img alt="Methodist Church Logo - Red cross symbol" src="${imageUrl}" class="w-10 h-10 mb-3">
     <div class="text-center">
@@ -246,7 +246,7 @@ export function ChurchReceipt(invoice: any) {
 </div>
 
 </div>
-</div>
+
 
 </body>
 </html>
