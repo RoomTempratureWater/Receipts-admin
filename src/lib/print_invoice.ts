@@ -3,31 +3,32 @@ import { ChurchReceipt } from '@/lib/template'
 export function printInvoice(invoice: unknown): void {
   const html = ChurchReceipt(invoice)
 
-  // Create a hidden iframe
-  const iframe = document.createElement('iframe')
-  iframe.setAttribute('style', 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;')
-  iframe.setAttribute('id', 'print-iframe')
+  const win = window.open('', '_blank')
 
-  document.body.appendChild(iframe)
+  if (!win) {
+    console.error('Failed to open print window.')
+    return
+  }
 
-  const doc = iframe.contentWindow?.document
-  if (!doc) return
+  win.document.open()
+  win.document.write(
+    html.replace(
+      '</head>',
+      `
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  doc.open()
-  doc.write(html)
-  doc.close()
+      </head>`
+    )
+  )
+  win.document.close()
 
-  iframe.onload = () => {
-    try {
-      iframe.contentWindow?.focus()
-      iframe.contentWindow?.print()
-    } catch (err) {
-      console.error('Printing failed:', err)
-    } finally {
-      // Cleanup after a short delay to allow print dialog
-      setTimeout(() => {
-        iframe.remove()
-      }, 1000)
-    }
+  // Wait for content to render before printing
+  win.onload = () => {
+    setTimeout(() => {
+      win.focus()
+      win.print()
+      // Optionally close after print — mobile may block this
+      // win.close()
+    }, 300)
   }
 }
