@@ -12,10 +12,11 @@ import { X, Menu, Sun, Moon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import AddExpenditureForm from '@/components/AddExpenditureForm'
 import ExpenditureHistory from '@/components/ExpenditureHistory'
+import MembersList from '@/components/Members'
 import BalanceSheet from '@/components/BalanceSheet'
-export default function Dashboard() {
 
-  const [view, setView] = useState<'add' | 'history' | 'tags' | 'funds' | 'expenditure'| 'expenses' | 'balance'>('add')
+export default function Dashboard() {
+  const [view, setView] = useState<'add' | 'history' | 'tags' | 'funds' | 'expenditure' | 'expenses' | 'balance' | 'members'>('add')
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
@@ -38,6 +39,28 @@ export default function Dashboard() {
     router.push('/login')
   }
 
+  const SidebarButton = ({
+    label,
+    emoji,
+    value,
+  }: {
+    label: string
+    emoji: string
+    value: typeof view
+  }) => (
+    <Button
+      variant={view === value ? 'default' : 'outline'}
+      className="w-full justify-start gap-2 text-left bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
+      onClick={() => {
+        setView(value)
+        setSidebarOpen(false)
+      }}
+    >
+      <span>{emoji}</span>
+      {label}
+    </Button>
+  )
+
   const Sidebar = (
     <div
       className="w-60 p-4 flex flex-col gap-4 h-full border-r"
@@ -54,76 +77,14 @@ export default function Dashboard() {
         </button>
       </div>
 
-      <Button
-        variant={view === 'add' ? 'default' : 'outline'}
-        className="bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
-        onClick={() => {
-          setView('add')
-          setSidebarOpen(false)
-        }}
-      >
-        ➕ Add Invoice
-      </Button>
-      <Button
-        variant={view === 'history' ? 'default' : 'outline'}
-        className="bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
-        onClick={() => {
-          setView('history')
-          setSidebarOpen(false)
-        }}
-      >
-        📜 Invoice History
-      </Button>
-      <Button
-        variant={view === 'tags' ? 'default' : 'outline'}
-        className="bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
-        onClick={() => {
-          setView('tags')
-          setSidebarOpen(false)
-        }}
-      >
-        🏷️ Tags
-      </Button>
-      <Button
-        variant={view === 'funds' ? 'default' : 'outline'}
-        className="bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
-        onClick={() => {
-          setView('funds')
-          setSidebarOpen(false)
-        }}
-      >
-        🧾 Church Fund History
-      </Button>
-      <Button
-        variant={view === 'expenditure' ? 'default' : 'outline'}
-        className="bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
-        onClick={() => {
-          setView('expenditure')
-          setSidebarOpen(false)
-        }}
-      >
-        💸 Add Expenditure
-      </Button>
-            <Button
-        variant={view === 'expenses' ? 'default' : 'outline'}
-        className="bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
-        onClick={() => {
-          setView('expenses')
-          setSidebarOpen(false)
-        }}
-      >
-        📉 Expenditure History
-      </Button>
-                  <Button
-        variant={view === 'balance' ? 'default' : 'outline'}
-        className="bg-[--color-sidebar-primary] text-[--color-sidebar-primary-foreground] hover:bg-[--color-sidebar-accent]"
-        onClick={() => {
-          setView('balance')
-          setSidebarOpen(false)
-        }}
-      >
-        📊 Balance Sheet 
-      </Button>
+      <SidebarButton label="Add Invoice" emoji="➕" value="add" />
+      <SidebarButton label="Invoice History" emoji="📜" value="history" />
+      <SidebarButton label="Tags" emoji="🏷️" value="tags" />
+      <SidebarButton label="Church Fund History" emoji="🧾" value="funds" />
+      <SidebarButton label="Add Expenditure" emoji="💸" value="expenditure" />
+      <SidebarButton label="Expenditure History" emoji="📉" value="expenses" />
+      <SidebarButton label="Balance Sheet" emoji="📊" value="balance" />
+      <SidebarButton label="Members" emoji="🧑" value="members" />
 
       <div className="mt-auto text-sm pt-4 border-t" style={{ borderColor: 'var(--color-sidebar-border)' }}>
         <p className="mb-2">Signed in as:</p>
@@ -168,7 +129,6 @@ export default function Dashboard() {
           </Button>
         </div>
 
-
         <div className={view === 'add' ? '' : 'hidden'}>
           <AddInvoiceForm />
         </div>
@@ -190,7 +150,9 @@ export default function Dashboard() {
         <div className={view === 'balance' ? '' : 'hidden'}>
           <BalanceSheet />
         </div>
-
+        <div className={view === 'members' ? '' : 'hidden'}>
+          <MembersList />
+        </div>
       </main>
     </div>
   )
