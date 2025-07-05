@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 
 interface Member {
-  name: string
+  first_name: string
+  last_name: string
   phone: string
   address: string
   [key: string]: any
@@ -32,7 +33,7 @@ export default function MembersList() {
       if (!error && data) {
         const withIds = data.map((m: any) => ({
           ...m,
-          id: generateMemberId(m.phone, m.name),
+          id: generateMemberId(m.phone, `${m.first_name}${m.last_name}`),
         }))
         setMembers(withIds)
         setFiltered(withIds)
@@ -46,7 +47,7 @@ export default function MembersList() {
   useEffect(() => {
     const lower = (s: string) => s?.toLowerCase() ?? ''
     const f = members.filter(m =>
-      lower(m.name).includes(lower(searchName)) &&
+      `${m.first_name} ${m.last_name}`.toLowerCase().includes(lower(searchName)) &&
       lower(m.phone).includes(lower(searchPhone)) &&
       lower(m.address).includes(lower(searchAddress))
     )
@@ -55,7 +56,7 @@ export default function MembersList() {
 
   const downloadCSV = () => {
     const headers = ['Name', 'Phone', 'Address']
-    const rows = filtered.map(m => [m.name, m.phone, m.address])
+    const rows = filtered.map(m => [`${m.first_name} ${m.last_name}`, m.phone, m.address])
     const csvContent = [headers, ...rows]
       .map(row => row.map(val => `"${val}"`).join(','))
       .join('\n')
@@ -124,7 +125,7 @@ export default function MembersList() {
             ) : (
               filtered.map(member => (
                 <tr key={member.id} className="hover:bg-muted/40">
-                  <td className="p-2 border">{member.name}</td>
+                  <td className="p-2 border">{member.first_name} {member.last_name}</td>
                   <td className="p-2 border">{member.phone}</td>
                   <td className="p-2 border">{member.address}</td>
                 </tr>

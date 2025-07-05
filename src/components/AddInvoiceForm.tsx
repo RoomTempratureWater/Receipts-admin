@@ -20,8 +20,7 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
-  ResponsiveContainer,
+  ResponsiveContainer
 } from 'recharts'
 import { Checkbox } from '@/components/ui/checkbox'
 
@@ -37,6 +36,13 @@ interface Tag {
 interface AttributionEntry {
   effective_month: string
   amount: number
+}
+
+interface Member {
+  id: string
+  first_name: string
+  last_name: string
+  address: string
 }
 
 export default function AddInvoiceForm() {
@@ -56,6 +62,10 @@ export default function AddInvoiceForm() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [graphData, setGraphData] = useState<AttributionEntry[]>([])
+  const [memberSuggestions, setMemberSuggestions] = useState<Member[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+
+  const selectedTagName = tags.find(t => t.tag_id === tag)?.tag_name
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -65,17 +75,14 @@ export default function AddInvoiceForm() {
     fetchTags()
   }, [])
 
-  useEffect(() => {
-    const tagName = tags.find(t => t.tag_id === tag)?.tag_name
-    if (tagName === 'Church Fund' && phone.length === 10) fetchRegistrationGraph()
-    else setGraphData([])
-  }, [tag, phone, tags])
-
   const fetchRegistrationGraph = async () => {
+    const trimmedPhone = phone.trim()
+    if (!/^\d{10}$/.test(trimmedPhone)) return
+
     const { data, error } = await supabase
       .from('invoice_attributions')
       .select('effective_month, amount')
-      .eq('phone', phone)
+      .eq('phone', trimmedPhone)
       .order('effective_month', { ascending: true })
 
     if (!error && data) {
@@ -87,26 +94,59 @@ export default function AddInvoiceForm() {
         }
       })
       setGraphData(formatted)
+    } else {
+      setGraphData([])
     }
   }
 
-  const validate = () => {
-    if (!/^\d{10}$/.test(phone)) return 'Phone number must be exactly 10 digits.'
-    if (!name || !title || !amount || !date || !address) return 'All fields are required.'
-    if (!tag) return 'Please select a tag.'
-    if (isNaN(Number(amount))) return 'Amount must be a number.'
-    if (paymentType !== 'cash' && !paymentReference) return 'Payment reference is required for non-cash payments.'
+  useEffect(() => {
+    const trimmedPhone = phone.trim()
+    if (selectedTagName === 'Church Fund' && /^\d{10}$/.test(trimmedPhone)) {
+      fetchRegistrationGraph()
+    } else {
+      setGraphData([])
+    }
+  }, [selectedTagName, phone])
 
-    if (selectedTagName === 'Church Fund' && useRange) {
-      if (!fromDate || !toDate) {
-        return 'From and To dates are required when using a date range.'
+  useEffect(() => {
+    const fetchMembers = async () => {
+      const trimmedPhone = phone.trim()
+      if (/^\d{10}$/.test(trimmedPhone)) {
+        const { data, error } = await supabase
+          .from('members')
+          .select('id, first_name, last_name, address')
+          .eq('phone', trimmedPhone)
+          .order('created_at', { ascending: false })
+
+        if (!error && data) {
+          setMemberSuggestions(data)
+          setShowSuggestions(true)
+        } else {
+          setMemberSuggestions([])
+          setShowSuggestions(false)
+        }
+      } else {
+        setMemberSuggestions([])
+        setShowSuggestions(false)
       }
     }
 
+    fetchMembers()
+  }, [phone])
+
+  const validate = () => {
+    const trimmedPhone = phone.trim()
+    if (trimmedPhone && !/^\d{10}$/.test(trimmedPhone)) return 'Phone number must be exactly 10 digits if provided.'
+    if (!title || !amount || !date) return 'Title, Amount, and Date are required.'
+    if (!tag) return 'Please select a tag.'
+    if (isNaN(Number(amount))) return 'Amount must be a number.'
+    if (paymentType !== 'cash' && !paymentReference) return 'Payment reference is required for non-cash payments.'
+    if (selectedTagName === 'Church Fund' && useRange && (!fromDate || !toDate)) {
+      return 'From and To dates are required when using a date range.'
+    }
     return null
   }
 
-  
   const handleSubmit = async () => {
     setError('')
     setSuccess('')
@@ -115,47 +155,40 @@ export default function AddInvoiceForm() {
       setError(err)
       return
     }
-  
+
     const {
       data: { user },
       error: userError,
     } = await supabase.auth.getUser()
-  
+
     if (!user || userError) {
       setError('User not authenticated.')
       return
     }
-  
 
     const useValidRange = useRange && fromDate && toDate
-    
-    const effective_from = useValidRange ? fromDate : null
-    const effective_to = useValidRange ? toDate : null
 
-  
-    const actual_amt_credit_dt = paymentType === 'cheque' ? null : date
-  
     const invoiceData = {
-      phone,
-      name,
+      phone: phone.trim() || null,
+      name: name || null,
       title,
       amount: Number(amount),
-      date, // user-selected date
+      date,
       tag,
-      address,
-      effective_from,
-      effective_to,
+      address: address || null,
+      effective_from: useValidRange ? fromDate : null,
+      effective_to: useValidRange ? toDate : null,
       user_id: user.id,
       payment_type: paymentType,
       payment_reference: paymentType !== 'cash' ? paymentReference : null,
-      actual_amt_credit_dt, // NEW FIELD
+      actual_amt_credit_dt: paymentType === 'cheque' ? null : date,
     }
-  
+
     const { data: inserted, error: insertError } = await supabase
       .rpc('insert_invoice_with_short_id', invoiceData)
       .select()
-      .single();
-  
+      .single()
+
     if (insertError) {
       setError(insertError.message)
     } else {
@@ -177,24 +210,43 @@ export default function AddInvoiceForm() {
     }
   }
 
-  const selectedTagName = tags.find(t => t.tag_id === tag)?.tag_name
-
   return (
     <div className="w-full max-w-md mx-auto space-y-4">
       <h2 className="text-xl font-semibold text-center">Add Invoice</h2>
 
       <div>
-        <Label>Phone Number</Label>
-        <Input value={phone} onChange={e => setPhone(e.target.value)} maxLength={10} />
+        <Label>Phone Number (optional)</Label>
+        <Input
+          value={phone}
+          onChange={e => setPhone(e.target.value)}
+          maxLength={10}
+        />
+        {showSuggestions && memberSuggestions.length > 0 && (
+          <div className="border rounded bg-white shadow max-h-40 overflow-y-auto text-sm mt-1 z-10 relative">
+            {memberSuggestions.map(member => (
+              <div
+                key={member.id}
+                className="p-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => {
+                  setName(`${member.first_name} ${member.last_name}`)
+                  setAddress(member.address)
+                  setShowSuggestions(false)
+                }}
+              >
+                {member.first_name} {member.last_name}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>
-        <Label>Name</Label>
+        <Label>Name (optional)</Label>
         <Input value={name} onChange={e => setName(e.target.value)} />
       </div>
 
       <div>
-        <Label>Address</Label>
+        <Label>Address (optional)</Label>
         <Input value={address} onChange={e => setAddress(e.target.value)} />
       </div>
 

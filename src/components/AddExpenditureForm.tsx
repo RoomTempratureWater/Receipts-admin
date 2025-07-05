@@ -114,7 +114,7 @@ export default function AddExpenditureForm() {
       return
     }
 
-    const actual_amt_credit_dt = paymentType === 'cheque' ? null : getISTTimestamp()
+    const actual_amt_credit_dt = paymentType === 'cheque' ? null : date
 
     const expenditureData = {
       title,

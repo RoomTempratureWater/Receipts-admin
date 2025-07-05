@@ -245,6 +245,7 @@ export default function InvoiceHistory() {
               <th className="border px-3 py-2 text-left">Phone</th>
               <th className="border px-3 py-2 text-left">Tag</th>
               <th className="border px-3 py-2 text-right">Amount (₹)</th>
+              <th className="border px-3 py-2 text-right">Payment Reference</th>
               <th className="border px-3 py-2 text-left">Created</th>
               <th className="border px-3 py-2 text-left">Actual Credit</th>
               <th className="border px-3 py-2 text-center">Actions</th>
@@ -263,32 +264,33 @@ export default function InvoiceHistory() {
                   <td className="border px-3 py-2">{inv.phone}</td>
                   <td className="border px-3 py-2">{inv.tags?.tag_name || <span className="italic text-gray-400">None</span>}</td>
                   <td className="border px-3 py-2 text-right">{inv.amount}</td>
+                  <td className="border px-3 py-2">{inv.payment_reference || <span className="italic text-gray-400">—</span>}</td>  
                   <td className="border px-3 py-2">{new Date(inv.created_at).toLocaleDateString()}</td>
 
-                  <td className="border px-3 py-2">
-                    <input
-                      type="date"
-                      className="border px-2 py-1 rounded text-sm dark:bg-gray-800"
-                      value={inv.actual_amt_credit_dt?.slice(0, 10) || ''}
-                      onChange={async (e) => {
-                        const newDate = e.target.value
-                        const { error } = await supabase
-                          .from('invoices')
-                          .update({ actual_amt_credit_dt: newDate || null })
-                          .eq('id', inv.id)
-                  
-                        if (!error) {
-                          setInvoices((prev) =>
-                            prev.map((row) =>
-                              row.id === inv.id ? { ...row, actual_amt_credit_dt: newDate || null } : row
-                            )
-                          )
-                        } else {
-                          alert('Failed to update date')
-                        }
-                      }}
-                    />
-                  </td>
+              <td className="border px-3 py-2">
+                <input
+                  type="date"
+                  className="border px-2 py-1 rounded text-sm dark:bg-gray-800"
+                  value={inv.actual_amt_credit_dt?.slice(0, 10) || ''}
+                  onChange={async (e) => {
+                    const newDate = e.target.value
+                    const { error } = await supabase
+                      .from('invoices')
+                      .update({ actual_amt_credit_dt: newDate || null })
+                      .eq('id', inv.id)
+              
+                    if (!error) {
+                      setInvoices((prev) =>
+                        prev.map((row) =>
+                          row.id === inv.id ? { ...row, actual_amt_credit_dt: newDate || null } : row
+                        )
+                      )
+                    } else {
+                      alert('Failed to update date')
+                    }
+                  }}
+                />
+              </td>
 
                   <td className="border px-3 py-2 text-center space-x-2">
                     <Button
