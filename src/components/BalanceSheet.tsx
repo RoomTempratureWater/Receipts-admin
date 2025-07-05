@@ -105,7 +105,7 @@ export default function BalanceSheet() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
-        {/* Invoice Side */}
+        {/* Invoices */}
         <Card className="flex-1 p-4">
           <h3 className="font-semibold mb-2">Invoices</h3>
           <DropdownMenu>
@@ -132,6 +132,7 @@ export default function BalanceSheet() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
           <table className="w-full mt-2 text-sm">
             <thead>
               <tr className="border-b">
@@ -151,11 +152,16 @@ export default function BalanceSheet() {
                   </tr>
                 )
               })}
+              <tr className="border-t font-semibold">
+                <td>Total</td>
+                <td className="text-right">₹{totalInvoiceCash}</td>
+                <td className="text-right">₹{totalInvoiceBank}</td>
+              </tr>
             </tbody>
           </table>
         </Card>
 
-        {/* Expenditure Side */}
+        {/* Expenditures */}
         <Card className="flex-1 p-4">
           <h3 className="font-semibold mb-2">Expenditures</h3>
           <DropdownMenu>
@@ -182,6 +188,7 @@ export default function BalanceSheet() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
           <table className="w-full mt-2 text-sm">
             <thead>
               <tr className="border-b">
@@ -201,16 +208,32 @@ export default function BalanceSheet() {
                   </tr>
                 )
               })}
+              <tr className="border-t font-semibold">
+                <td>Total</td>
+                <td className="text-right">₹{totalExpenseCash}</td>
+                <td className="text-right">₹{totalExpenseBank}</td>
+              </tr>
             </tbody>
           </table>
         </Card>
       </div>
 
-      <div className="flex justify-between max-w-xl mx-auto border-t pt-4 mt-6 text-lg font-semibold">
-        <div>Net Cash: ₹{totalInvoiceCash - totalExpenseCash}</div>
-        <div>Net Bank: ₹{totalInvoiceBank - totalExpenseBank}</div>
-      </div>
+      {/* Net Summary */}
+      <Card className="max-w-xl mx-auto p-4 mt-6 shadow-md text-center space-y-2">
+        <h4 className="text-lg font-semibold">Net Balance</h4>
+        <div className="flex justify-between text-base font-medium">
+          <span>Net Cash</span>
+          <span className={totalInvoiceCash - totalExpenseCash >= 0 ? 'text-green-600' : 'text-red-600'}>
+            ₹{totalInvoiceCash - totalExpenseCash}
+          </span>
+        </div>
+        <div className="flex justify-between text-base font-medium">
+          <span>Net Bank</span>
+          <span className={totalInvoiceBank - totalExpenseBank >= 0 ? 'text-green-600' : 'text-red-600'}>
+            ₹{totalInvoiceBank - totalExpenseBank}
+          </span>
+        </div>
+      </Card>
     </div>
   )
 }
-
