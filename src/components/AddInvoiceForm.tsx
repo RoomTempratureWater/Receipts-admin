@@ -14,14 +14,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts'
 import { Checkbox } from '@/components/ui/checkbox'
 
 function getTodayDate() {
@@ -31,11 +23,6 @@ function getTodayDate() {
 interface Tag {
   tag_id: string
   tag_name: string
-}
-
-interface AttributionEntry {
-  effective_month: string
-  amount: number
 }
 
 interface Member {
@@ -61,9 +48,9 @@ export default function AddInvoiceForm() {
   const [paymentReference, setPaymentReference] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [graphData, setGraphData] = useState<AttributionEntry[]>([])
   const [memberSuggestions, setMemberSuggestions] = useState<Member[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [lastChurchFundDate, setLastChurchFundDate] = useState<string | null>(null)
 
   const selectedTagName = tags.find(t => t.tag_id === tag)?.tag_name
 
@@ -74,39 +61,6 @@ export default function AddInvoiceForm() {
     }
     fetchTags()
   }, [])
-
-  const fetchRegistrationGraph = async () => {
-    const trimmedPhone = phone.trim()
-    if (!/^\d{10}$/.test(trimmedPhone)) return
-
-    const { data, error } = await supabase
-      .from('invoice_attributions')
-      .select('effective_month, amount')
-      .eq('phone', trimmedPhone)
-      .order('effective_month', { ascending: true })
-
-    if (!error && data) {
-      const formatted = data.map(entry => {
-        const dateObj = parse(entry.effective_month.slice(0, 7), 'yyyy-MM', new Date())
-        return {
-          effective_month: format(dateObj, 'MMM'),
-          amount: entry.amount,
-        }
-      })
-      setGraphData(formatted)
-    } else {
-      setGraphData([])
-    }
-  }
-
-  useEffect(() => {
-    const trimmedPhone = phone.trim()
-    if (selectedTagName === 'Church Fund' && /^\d{10}$/.test(trimmedPhone)) {
-      fetchRegistrationGraph()
-    } else {
-      setGraphData([])
-    }
-  }, [selectedTagName, phone])
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -133,6 +87,31 @@ export default function AddInvoiceForm() {
 
     fetchMembers()
   }, [phone])
+
+  useEffect(() => {
+    const fetchLastChurchFundDate = async () => {
+      const trimmedPhone = phone.trim()
+      if (selectedTagName === 'Church Fund' && /^\d{10}$/.test(trimmedPhone)) {
+        const { data, error } = await supabase
+          .from('invoice_attributions')
+          .select('effective_month')
+          .eq('phone', trimmedPhone)
+          .order('effective_month', { ascending: false })
+          .limit(1)
+
+        if (!error && data && data.length > 0) {
+          const formatted = format(new Date(data[0].effective_month), 'MMMM')
+          setLastChurchFundDate(formatted)
+        } else {
+          setLastChurchFundDate(null)
+        }
+      } else {
+        setLastChurchFundDate(null)
+      }
+    }
+
+    fetchLastChurchFundDate()
+  }, [selectedTagName, phone])
 
   const validate = () => {
     const trimmedPhone = phone.trim()
@@ -206,7 +185,7 @@ export default function AddInvoiceForm() {
       setUseRange(false)
       setPaymentType('cash')
       setPaymentReference('')
-      setGraphData([])
+      setLastChurchFundDate(null)
     }
   }
 
@@ -302,6 +281,9 @@ export default function AddInvoiceForm() {
 
       {selectedTagName === 'Church Fund' && (
         <div className="space-y-2">
+          <p className="text-sm text-gray-600">
+            Last church fund paid in: {lastChurchFundDate ?? 'null'}
+          </p>
           <div className="flex items-center space-x-2">
             <Checkbox
               checked={useRange}
@@ -329,20 +311,6 @@ export default function AddInvoiceForm() {
       {success && <p className="text-green-500 text-sm">{success}</p>}
 
       <Button className="w-full" onClick={handleSubmit}>Submit</Button>
-
-      {graphData.length > 0 && (
-        <div className="pt-6">
-          <h3 className="text-lg font-semibold text-center">Church Fund History</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={graphData}>
-              <XAxis dataKey="effective_month" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="amount" stroke="#4ade80" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
     </div>
   )
 }
