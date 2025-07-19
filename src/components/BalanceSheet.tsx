@@ -28,6 +28,8 @@ export default function BalanceSheet() {
   const [expenseRecords, setExpenseRecords] = useState<Record[]>([])
   const [invoiceTags, setInvoiceTags] = useState<string[]>([])
   const [expenseTags, setExpenseTags] = useState<string[]>([])
+  const [actualCash, setActualCash] = useState<number>(0)
+  const [actualBank, setActualBank] = useState<number>(0)
 
   useEffect(() => {
     const loadTags = async () => {
@@ -61,6 +63,22 @@ export default function BalanceSheet() {
 
       if (invoiceRes.data) setInvoiceRecords(invoiceRes.data)
       if (expenseRes.data) setExpenseRecords(expenseRes.data)
+
+      // Fetch actual balance till end date
+      const { data: actualData, error } = await supabase.rpc('get_net_balance_by_payment_type', {
+        end_date: endDate
+      })
+
+      if (actualData) {
+        const cash = actualData.find((r: any) => r.payment_group === 'cash')?.total_amount || 0
+        const bank = actualData.find((r: any) => r.payment_group === 'bank')?.total_amount || 0
+        setActualCash(cash)
+        setActualBank(bank)
+      }
+
+      if (error) {
+        console.error('Error fetching actual balance:', error)
+      }
     }
 
     fetchData()
@@ -88,6 +106,9 @@ export default function BalanceSheet() {
   const totalInvoiceBank = Object.values(invoiceTotals).reduce((sum, t) => sum + t.bank, 0)
   const totalExpenseCash = Object.values(expenseTotals).reduce((sum, t) => sum + t.cash, 0)
   const totalExpenseBank = Object.values(expenseTotals).reduce((sum, t) => sum + t.bank, 0)
+
+  const netCash = totalInvoiceCash - totalExpenseCash
+  const netBank = totalInvoiceBank - totalExpenseBank
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -218,20 +239,24 @@ export default function BalanceSheet() {
         </Card>
       </div>
 
-      {/* Net Summary */}
-      <Card className="max-w-xl mx-auto p-4 mt-6 shadow-md text-center space-y-2">
-        <h4 className="text-lg font-semibold">Net Balance</h4>
+      {/* Summary */}
+      <Card className="max-w-xl mx-auto p-4 mt-6 shadow-md space-y-4">
+        <h4 className="text-lg font-semibold text-center">Summary</h4>
         <div className="flex justify-between text-base font-medium">
-          <span>Net Cash</span>
-          <span className={totalInvoiceCash - totalExpenseCash >= 0 ? 'text-green-600' : 'text-red-600'}>
-            ₹{totalInvoiceCash - totalExpenseCash}
-          </span>
+          <span>Current Cash Difference</span>
+          <span className={netCash >= 0 ? 'text-green-600' : 'text-red-600'}>₹{netCash}</span>
         </div>
         <div className="flex justify-between text-base font-medium">
-          <span>Net Bank</span>
-          <span className={totalInvoiceBank - totalExpenseBank >= 0 ? 'text-green-600' : 'text-red-600'}>
-            ₹{totalInvoiceBank - totalExpenseBank}
-          </span>
+          <span>Current Bank Difference</span>
+          <span className={netBank >= 0 ? 'text-green-600' : 'text-red-600'}>₹{netBank}</span>
+        </div>
+        <div className="flex justify-between text-base font-medium border-t pt-2">
+          <span>Actual Cash Till Date</span>
+          <span className={actualCash >= 0 ? 'text-green-700' : 'text-red-700'}>₹{actualCash}</span>
+        </div>
+        <div className="flex justify-between text-base font-medium">
+          <span>Actual Bank Till Date</span>
+          <span className={actualBank >= 0 ? 'text-green-700' : 'text-red-700'}>₹{actualBank}</span>
         </div>
       </Card>
     </div>
