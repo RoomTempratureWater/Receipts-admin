@@ -58,4 +58,4 @@
 📧 Reach out: **jonnet21@gmail.com**
 
 ---
-](https://socialify.git.ci/RoomTempratureWater/Receipts-admin/image?description=1&language=1&name=1&owner=1&pattern=Transparent&theme=Auto)
+
