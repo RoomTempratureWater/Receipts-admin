@@ -64,7 +64,6 @@ export default function BalanceSheet() {
       if (invoiceRes.data) setInvoiceRecords(invoiceRes.data)
       if (expenseRes.data) setExpenseRecords(expenseRes.data)
 
-      // Fetch actual balance till end date
       const { data: actualData, error } = await supabase.rpc('get_net_balance_by_payment_type', {
         end_date: endDate
       })
@@ -110,6 +109,37 @@ export default function BalanceSheet() {
   const netCash = totalInvoiceCash - totalExpenseCash
   const netBank = totalInvoiceBank - totalExpenseBank
 
+  const downloadCSV = () => {
+    let csv = `Balance Sheet Report (${startDate} to ${endDate})\n\n`
+
+    csv += `Invoices\nTag,Cash,Bank\n`
+    Object.entries(invoiceTotals).forEach(([tagId, { cash, bank }]) => {
+      const tagName = tags.find(t => t.tag_id === tagId)?.tag_name || tagId
+      csv += `${tagName},${cash},${bank}\n`
+    })
+    csv += `Total,${totalInvoiceCash},${totalInvoiceBank}\n\n`
+
+    csv += `Expenditures\nTag,Cash,Bank\n`
+    Object.entries(expenseTotals).forEach(([tagId, { cash, bank }]) => {
+      const tagName = tags.find(t => t.tag_id === tagId)?.tag_name || tagId
+      csv += `${tagName},${cash},${bank}\n`
+    })
+    csv += `Total,${totalExpenseCash},${totalExpenseBank}\n\n`
+
+    csv += `Summary\n`
+    csv += `Current Cash Difference,${netCash}\n`
+    csv += `Current Bank Difference,${netBank}\n`
+    csv += `Actual Cash Till Date,${actualCash}\n`
+    csv += `Actual Bank Till Date,${actualBank}\n`
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `balance_sheet_${startDate}_to_${endDate}.csv`)
+    link.click()
+  }
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <h2 className="text-2xl font-semibold text-center">Balance Sheet</h2>
@@ -123,6 +153,9 @@ export default function BalanceSheet() {
           <Label>End Date</Label>
           <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
         </div>
+        <Button onClick={downloadCSV} disabled={!startDate || !endDate}>
+          Download CSV
+        </Button>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
