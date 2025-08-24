@@ -67,7 +67,7 @@ export default function InvoiceHistory() {
 
   useEffect(() => {
     const fetchTags = async () => {
-      const { data, error } = await supabase.from('tags').select('tag_id, tag_name')
+      const { data, error } = await supabase.from('invoice_tags').select('tag_id, tag_name')
       if (!error && data) setTags(data)
     }
     fetchTags()

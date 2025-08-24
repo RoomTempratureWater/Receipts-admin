@@ -23,26 +23,38 @@ interface Record {
 export default function BalanceSheet() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [tags, setTags] = useState<Tag[]>([])
+
+  const [invoiceTagsList, setInvoiceTagsList] = useState<Tag[]>([])
+  const [expenseTagsList, setExpenseTagsList] = useState<Tag[]>([])
+
   const [invoiceRecords, setInvoiceRecords] = useState<Record[]>([])
   const [expenseRecords, setExpenseRecords] = useState<Record[]>([])
-  const [invoiceTags, setInvoiceTags] = useState<string[]>([])
-  const [expenseTags, setExpenseTags] = useState<string[]>([])
+
+  const [selectedInvoiceTags, setSelectedInvoiceTags] = useState<string[]>([])
+  const [selectedExpenseTags, setSelectedExpenseTags] = useState<string[]>([])
+
   const [actualCash, setActualCash] = useState<number>(0)
   const [actualBank, setActualBank] = useState<number>(0)
 
+  // Load tags from separate tables
   useEffect(() => {
     const loadTags = async () => {
-      const { data } = await supabase.from('tags').select('tag_id, tag_name')
-      if (data) {
-        setTags(data)
-        setInvoiceTags(data.map(t => t.tag_id))
-        setExpenseTags(data.map(t => t.tag_id))
+      const { data: invTags } = await supabase.from('invoice_tags').select('tag_id, tag_name')
+      const { data: expTags } = await supabase.from('expense_tags').select('tag_id, tag_name')
+
+      if (invTags) {
+        setInvoiceTagsList(invTags)
+        setSelectedInvoiceTags(invTags.map(t => t.tag_id))
+      }
+      if (expTags) {
+        setExpenseTagsList(expTags)
+        setSelectedExpenseTags(expTags.map(t => t.tag_id))
       }
     }
     loadTags()
   }, [])
 
+  // Load records when dates change
   useEffect(() => {
     const fetchData = async () => {
       if (!startDate || !endDate) return
@@ -98,8 +110,8 @@ export default function BalanceSheet() {
     return totals
   }
 
-  const invoiceTotals = groupByTagAndType(invoiceRecords, invoiceTags)
-  const expenseTotals = groupByTagAndType(expenseRecords, expenseTags)
+  const invoiceTotals = groupByTagAndType(invoiceRecords, selectedInvoiceTags)
+  const expenseTotals = groupByTagAndType(expenseRecords, selectedExpenseTags)
 
   const totalInvoiceCash = Object.values(invoiceTotals).reduce((sum, t) => sum + t.cash, 0)
   const totalInvoiceBank = Object.values(invoiceTotals).reduce((sum, t) => sum + t.bank, 0)
@@ -165,16 +177,16 @@ export default function BalanceSheet() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="mb-2">
-                Invoice Tags ({invoiceTags.length})
+                Invoice Tags ({selectedInvoiceTags.length})
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="p-2 max-h-64 overflow-auto space-y-2">
-              {tags.map(tag => (
+              {invoiceTagsList.map(tag => (
                 <div key={tag.tag_id} className="flex items-center gap-2 px-2">
                   <Checkbox
-                    checked={invoiceTags.includes(tag.tag_id)}
+                    checked={selectedInvoiceTags.includes(tag.tag_id)}
                     onCheckedChange={() => {
-                      setInvoiceTags(prev =>
+                      setSelectedInvoiceTags(prev =>
                         prev.includes(tag.tag_id)
                           ? prev.filter(t => t !== tag.tag_id)
                           : [...prev, tag.tag_id]
@@ -197,7 +209,7 @@ export default function BalanceSheet() {
             </thead>
             <tbody>
               {Object.entries(invoiceTotals).map(([tagId, { cash, bank }]) => {
-                const tagName = tags.find(t => t.tag_id === tagId)?.tag_name || tagId
+                const tagName = invoiceTagsList.find(t => t.tag_id === tagId)?.tag_name || tagId
                 return (
                   <tr key={tagId}>
                     <td>{tagName}</td>
@@ -221,16 +233,16 @@ export default function BalanceSheet() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="mb-2">
-                Expense Tags ({expenseTags.length})
+                Expense Tags ({selectedExpenseTags.length})
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="p-2 max-h-64 overflow-auto space-y-2">
-              {tags.map(tag => (
+              {expenseTagsList.map(tag => (
                 <div key={tag.tag_id} className="flex items-center gap-2 px-2">
                   <Checkbox
-                    checked={expenseTags.includes(tag.tag_id)}
+                    checked={selectedExpenseTags.includes(tag.tag_id)}
                     onCheckedChange={() => {
-                      setExpenseTags(prev =>
+                      setSelectedExpenseTags(prev =>
                         prev.includes(tag.tag_id)
                           ? prev.filter(t => t !== tag.tag_id)
                           : [...prev, tag.tag_id]
@@ -253,7 +265,7 @@ export default function BalanceSheet() {
             </thead>
             <tbody>
               {Object.entries(expenseTotals).map(([tagId, { cash, bank }]) => {
-                const tagName = tags.find(t => t.tag_id === tagId)?.tag_name || tagId
+                const tagName = expenseTagsList.find(t => t.tag_id === tagId)?.tag_name || tagId
                 return (
                   <tr key={tagId}>
                     <td>{tagName}</td>

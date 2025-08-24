@@ -42,7 +42,7 @@ export default function AddExpenditureForm() {
 
   useEffect(() => {
     const fetchTags = async () => {
-      const { data, error } = await supabase.from('tags').select('tag_id, tag_name')
+      const { data, error } = await supabase.from('expense_tags').select('tag_id, tag_name')
       if (error) console.error('Error fetching tags:', error.message)
       else setTags(data)
     }

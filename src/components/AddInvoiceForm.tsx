@@ -1,6 +1,6 @@
 'use client'
 
-import { parse, format } from 'date-fns'
+import { format } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { printInvoice } from '@/lib/print_invoice'
@@ -56,8 +56,11 @@ export default function AddInvoiceForm() {
 
   useEffect(() => {
     const fetchTags = async () => {
-      const { data, error } = await supabase.from('tags').select('tag_id, tag_name')
-      if (!error) setTags(data)
+      const { data, error } = await supabase
+        .from('invoice_tags')
+        .select('tag_id, tag_name')
+        .order('created_at', { ascending: false })
+      if (!error && data) setTags(data)
     }
     fetchTags()
   }, [])
@@ -153,7 +156,7 @@ export default function AddInvoiceForm() {
       title,
       amount: Number(amount),
       date,
-      tag,
+      tag, // this is tag_id from invoice_tags
       address: address || null,
       effective_from: useValidRange ? fromDate : null,
       effective_to: useValidRange ? toDate : null,
