@@ -39,7 +39,7 @@ export default function ExpenditureHistory() {
 
   useEffect(() => {
     const init = async () => {
-      const { data: tagData } = await supabase.from('tags').select('tag_id, tag_name')
+      const { data: tagData } = await supabase.from('expense_tags').select('tag_id, tag_name')
       if (tagData) {
         setTags(tagData)
         setSelectedTags(tagData.map(t => t.tag_id))
